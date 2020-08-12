@@ -1,258 +1,310 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
+    />
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <title>Document</title>
-</head>
+  </head>
 
-<body onload="MyStart()">
+  <body onload="MyStart()">
     <script>
-        var myCompoment;
-        var mysong, songBack;
-        var myObstacle = [];
-        var fire = [];
-        var Score;
+      var myCompoment;
+      var mysong, songBack;
+      var myObstacle = [];
+      var fire = [];
+      var Score;
+      let check = true,
+        vt = 250;
+      function MyStart() {
+        songBack = new sound("chun.mp3");
+        Score = new compoment("30px", "Consolas", "green", 280, 40, "text");
+        myCompoment = new compoment(30, 30, "red", 10, 120, "image");
+        myGameCanvas.start();
+        myCompoment.PosX = 220;
+        myCompoment.PosY = 300;
+        myCompoment.update();
+        myCompoment.NewPos();
+      }
+      var myGameCanvas = {
+        Canvas: document.createElement("Canvas"),
+        start: function () {
+          songBack.play();
+          this.Canvas.width = 700;
+          this.Canvas.height = 450;
+          this.FrameNo = 0;
+          this.context = this.Canvas.getContext("2d");
+          document.body.insertBefore(this.Canvas, document.body.firstChild);
+          this.interval = setInterval(UpdateAll, 10);
+          window.addEventListener("keydown", function (e) {
+            myGameCanvas.keys = myGameCanvas.keys || [];
+            myGameCanvas.keys[e.keyCode] = e.type == "keydown";
+          });
+          window.addEventListener("keyup", function (e) {
+            myGameCanvas.keys[e.keyCode] = e.type == "keydown";
+          });
+        },
+        clear: function () {
+          this.context.clearRect(0, 0, this.Canvas.width, this.Canvas.height);
+        },
+        stop: function () {
+          clearInterval(this.interval);
+        },
+      };
 
-        function MyStart() {
-            songBack = new sound("chun.mp3");
-            Score = new compoment("30px", "Consolas", "green", 280, 40, "text");
-            myCompoment = new compoment(30, 30, "red", 10, 120, "image");
-            myGameCanvas.start();
+      function compoment(width, height, color, PosX, PosY, Type) {
+        this.vtCan = 15;
+        this.testVt = 0;
+        this.vt = 1;
+        this.Type = Type;
+        this.speedF = 0;
+        this.width = width;
+        this.angle = 0;
+        this.height = height;
+        this.speedX = 0;
+        this.speedY = 0;
+        this.PosX = PosX;
+        this.PosY = PosY;
+        this.update = function () {
+          s = myGameCanvas.context;
+          if (this.Type == "text") {
+            s.font = this.width + " " + this.height;
+            s.fillStyle = color;
+            s.fillText(this.text, this.PosX, this.PosY);
+          } else {
+            s.save();
+            s.translate(this.posX, this.posY);
+            s.rotate(this.angle);
+            s.fillStyle = color;
+            s.fillRect(this.PosX, this.PosY, this.width, this.height);
+            s.restore();
+          }
+        };
+
+        this.NewPos = function () {
+          this.PosX += this.speedX;
+          this.PosY += this.speedY;
+        };
+        this.CrashWith = function (Obj) {
+          var Mytop = this.PosY,
+            Mybottom = this.PosY + this.height,
+            Myright = this.PosX + this.width,
+            Myleft = this.PosX,
+            Objtop = Obj.PosY,
+            Objbottom = Obj.PosY + Obj.height,
+            Objright = Obj.PosX + Obj.width,
+            Objleft = Obj.PosX,
+            Crash = true;
+          if (
+            Mybottom < Objtop ||
+            Mytop > Objbottom ||
+            Myright < Objleft ||
+            Myleft > Objright
+          ) {
+            Crash = false;
+          }
+
+          return Crash;
+        };
+        this.CrashWith2 = function (Obj) {
+          var Mytop = this.PosY;
+          var Mybottom = this.PosY + this.height;
+          var Myright = this.PosX + this.width;
+          var Myleft = this.PosX;
+          var Objtop = Obj.PosY;
+          var Objbottom = Obj.PosY + Obj.height;
+          var Objright = Obj.PosX + Obj.width;
+          var Objleft = Obj.PosX;
+          var Crash = true;
+          if (
+            Mybottom < Objtop ||
+            Mytop > Objbottom ||
+            Myright < Objleft ||
+            Myleft > Objright
+          ) {
+            Crash = false;
+          }
+
+          return Crash;
+        };
+      }
+
+      function getRadom(have) {
+        return Math.floor(Math.random() * have);
+      }
+
+      function IntervalEvery(n) {
+        if ((myGameCanvas.FrameNo / n) % 1 == 0) {
+          return true;
         }
-        var myGameCanvas = {
-            Canvas: document.createElement("Canvas"),
-            start: function() {
-                songBack.play();
-                this.Canvas.width = 480;
-                this.Canvas.height = 270;
-                this.FrameNo = 0;
-                this.context = this.Canvas.getContext("2d");
-                document.body.insertBefore(this.Canvas, document.body.firstChild);
-                this.interval = setInterval(UpdateAll, 5);
-                window.addEventListener('keydown', function(e) {
-                    myGameCanvas.keys = (myGameCanvas.keys || []);
-                    myGameCanvas.keys[e.keyCode] = (e.type == "keydown");
-                })
-                window.addEventListener('keyup', function(e) {
-                    myGameCanvas.keys[e.keyCode] = (e.type == "keydown");
-                })
+        return false;
+      }
 
-
-            },
-            clear: function() {
-                this.context.clearRect(0, 0, this.Canvas.width, this.Canvas.height);
-            },
-            stop: function() {
-                clearInterval(this.interval);
-            }
+      function sound(src) {
+        this.sound = document.createElement("audio");
+        this.sound.src = src;
+        this.sound.setAttribute("preload", "auto");
+        this.sound.setAttribute("controls", "none");
+        this.sound.style.display = "none";
+        document.body.appendChild(this.sound);
+        this.play = function () {
+          this.sound.play();
+        };
+        this.stop = function () {
+          this.sound.pause();
+        };
+      }
+      function autoPlay() {
+        if (myCompoment.PosY < myCompoment.testVt) {
+          myCompoment.vt = 3;
+          myCompoment.PosY += myCompoment.vt;
+        }
+        if (myCompoment.PosY > myCompoment.testVt) {
+          myCompoment.vt = 3;
+          myCompoment.PosY -= myCompoment.vt;
+        }
+      }
+      function UpdateAll() {
+        var x, y;
+        for (i = 0; i < myObstacle.length; i += 1) {
+          if (myCompoment.CrashWith(myObstacle[i])) {
+            myGameCanvas.stop();
+            songBack.stop();
+          }
+        }
+        myGameCanvas.clear();
+        myGameCanvas.FrameNo++;
+        //radomDown = radomDown * 27;
+        radomUp = getRadom(43);
+        radomDown = getRadom(43);
+        while (43 - (radomDown + radomUp) != 7) {
+          radomUp = getRadom(43);
+          radomDown = getRadom(43);
         }
 
-        function compoment(width, height, color, PosX, PosY, Type) {
-            this.vtCan = 15;
-            this.testVt = 0;
-            this.vt = 1;
-            this.Type = Type;
-            this.speedF = 0;
-            this.width = width;
-            this.angle = 0;
-            this.height = height;
-            this.speedX = 0;
-            this.speedY = 0;
-            this.PosX = PosX;
-            this.PosY = PosY;
-            this.update = function() {
-                s = myGameCanvas.context;
-                if (this.Type == "text") {
-                    s.font = this.width + " " + this.height;
-                    s.fillStyle = color;
-                    s.fillText(this.text, this.PosX, this.PosY);
-                } else {
-                    s.save();
-                    s.translate(this.posX, this.posY);
-                    s.rotate(this.angle);
-                    s.fillStyle = color;
-                    s.fillRect(this.PosX, this.PosY, this.width, this.height);
-                    s.restore();
-                }
-            }
+        if (myGameCanvas.FrameNo == 1 || IntervalEvery(vt)) {
+          x = myGameCanvas.Canvas.width;
+          y = myGameCanvas.Canvas.height - radomDown * 10;
+          myObstacle.push(new compoment(10, radomDown * 10, "green", x, y));
+          myObstacle.push(new compoment(10, radomUp * 10, "green", x, 0));
 
-            this.NewPos = function() {
-                this.PosX += this.speedX;
-                this.PosY += this.speedY;
-            }
-            this.CrashWith = function(Obj) {
-                var Mytop = this.PosY,
-                    Mybottom = this.PosY + this.height,
-                    Myright = this.PosX + this.width,
-                    Myleft = this.PosX,
-                    Objtop = Obj.PosY,
-                    Objbottom = Obj.PosY + Obj.height,
-                    Objright = Obj.PosX + Obj.width,
-                    Objleft = Obj.PosX,
-                    Crash = true;
-                if ((Mybottom < Objtop) ||
-                    (Mytop > Objbottom) ||
-                    (Myright < Objleft) ||
-                    (Myleft > Objright)) {
-                    Crash = false;
-                }
-
-                return Crash;
-            }
-            this.CrashWith2 = function(Obj) {
-                var Mytop = this.PosY;
-                var Mybottom = this.PosY + this.height;
-                var Myright = this.PosX + this.width;
-                var Myleft = this.PosX;
-                var Objtop = Obj.PosY;
-                var Objbottom = Obj.PosY + Obj.height;
-                var Objright = Obj.PosX + Obj.width;
-                var Objleft = Obj.PosX;
-                var Crash = true;
-                if ((Mybottom < Objtop) ||
-                    (Mytop > Objbottom) ||
-                    (Myright < Objleft) ||
-                    (Myleft > Objright)) {
-                    Crash = false;
-                }
-
-                return Crash;
-            }
+          myCompoment.testVt = radomUp * 10 + 20;
+        }
+        if (check == true) {
+          autoPlay();
+        } else {
+          vt = 125;
+        }
+        if (myCompoment.PosY == myCompoment.testVt) {
+        }
+        if (myGameCanvas.FrameNo > 1300) {
+          myGameCanvas.Canvas.style.background = "black";
+        }
+        if (myGameCanvas.FrameNo > 1000 && myGameCanvas.FrameNo < 1300) {
+          myGameCanvas.Canvas.style.background = "yellow";
+        }
+        if (myGameCanvas.FrameNo > 700 && myGameCanvas.FrameNo < 10 - 0) {
+          myGameCanvas.Canvas.style.background = "black";
+        }
+        if (myGameCanvas.FrameNo > 500 && myGameCanvas.FrameNo < 700) {
+          myGameCanvas.Canvas.style.background = "white";
+        }
+        if (myGameCanvas.FrameNo > 200 && myGameCanvas.FrameNo < 500) {
+          myGameCanvas.Canvas.style.background = "gray";
         }
 
-        function getRadom(have) {
-            return Math.floor(Math.random() * have);
+        Score.text = "SCORE:" + myGameCanvas.FrameNo;
+        Score.update();
 
+        for (i = 0; i < myObstacle.length; i += 1) {
+          myObstacle[i].PosX -= 2;
+          myObstacle[i].update();
+        }
+        //====================================================
+
+        for (i = 0; i < fire.length; i++) {
+          fire[i].PosX += fire[i].speedF;
+          fire[i].update();
+          for (is = 0; is < myObstacle.length; is++) {}
+        }
+        //============================================
+        myCompoment.speedX = 0;
+        myCompoment.speedY = 0;
+        myCompoment.speedF = 0;
+        if (myGameCanvas.keys && myGameCanvas.keys[37]) {
+          myCompoment.speedX = -3;
+        }
+        if (myGameCanvas.keys && myGameCanvas.keys[39]) {
+          myCompoment.speedX = 3;
         }
 
-        function IntervalEvery(n) {
-            if ((myGameCanvas.FrameNo / n) % 1 == 0) {
-                return true;
-            }
-            return false;
+        if (myGameCanvas.keys && myGameCanvas.keys[38]) {
+          myCompoment.speedY = -3;
         }
 
-        function sound(src) {
-            this.sound = document.createElement("audio");
-            this.sound.src = src;
-            this.sound.setAttribute("preload", "auto");
-            this.sound.setAttribute("controls", "none");
-            this.sound.style.display = "none";
-            document.body.appendChild(this.sound);
-            this.play = function() {
-                this.sound.play();
-            }
-            this.stop = function() {
-                this.sound.pause();
-            }
+        if (myGameCanvas.keys && myGameCanvas.keys[40]) {
+          myCompoment.speedY = 3;
         }
-
-        function UpdateAll() {
-            myCompoment.angle += 1 * Math.PI / 30;
-            var x, y;
-            for (i = 0; i < myObstacle.length; i += 1) {
-                if (myCompoment.CrashWith(myObstacle[i])) {
-                    myGameCanvas.stop();
-                    songBack.stop();
-                }
-
-            }
-            myGameCanvas.clear();
-            myGameCanvas.FrameNo++;
-            //radomDown = radomDown * 27;
-            radomUp = getRadom(27);
-            radomDown = getRadom(27);
-            while (27 - (radomDown + radomUp) != 7) {
-                radomUp = getRadom(27);
-                radomDown = getRadom(27);
-            }
-
-            if (myGameCanvas.FrameNo == 1 || IntervalEvery(250)) {
-                x = myGameCanvas.Canvas.width;
-                y = myGameCanvas.Canvas.height - radomDown * 10;
-                myObstacle.push(new compoment(10, radomDown * 10, "green", x, y));
-                myObstacle.push(new compoment(10, radomUp * 10, "green", x, 0));
-
-                myCompoment.testVt = radomUp * 10 + 20;
-            }
-
-            if (myCompoment.PosY < myCompoment.testVt) {
-                myCompoment.vt = 1;
-                myCompoment.PosY += myCompoment.vt;
-            }
-            if (myCompoment.PosY > myCompoment.testVt) {
-                myCompoment.vt = 1;
-                myCompoment.PosY -= myCompoment.vt;
-            }
-            if (myCompoment.PosY == myCompoment.testVt) {}
-            if (myGameCanvas.FrameNo > 7000 && myGameCanvas.FrameNo < 8000) {
-                myGameCanvas.Canvas.style.background = "black";
-            }
-            if (myGameCanvas.FrameNo > 6000 && myGameCanvas.FrameNo < 7000) {
-                myGameCanvas.Canvas.style.background = "yellow";
-            }
-            if (myGameCanvas.FrameNo > 4000 && myGameCanvas.FrameNo < 6000) {
-                myGameCanvas.Canvas.style.background = "black";
-            }
-            if (myGameCanvas.FrameNo > 2000 && myGameCanvas.FrameNo < 4000) {
-                myGameCanvas.Canvas.style.background = "white";
-            }
-            if (myGameCanvas.FrameNo > 500 && myGameCanvas.FrameNo < 3000) {
-                myGameCanvas.Canvas.style.background = "gray";
-            }
-
-
-            Score.text = "SCORE:" + myGameCanvas.FrameNo;
-            Score.update();
-
-            for (i = 0; i < myObstacle.length; i += 1) {
-                myObstacle[i].PosX -= 2;
-                myObstacle[i].update();
-            }
-            //====================================================
-
-            for (i = 0; i < fire.length; i++) {
-                fire[i].PosX += fire[i].speedF;
-                fire[i].update();
-                for (is = 0; is < myObstacle.length; is++) {}
-            }
-            //============================================
-            myCompoment.speedX = 0;
-            myCompoment.speedY = 0;
-            myCompoment.speedF = 0;
-            if (myGameCanvas.keys && myGameCanvas.keys[37]) {
-                myCompoment.speedX = -3;
-            }
-            if (myGameCanvas.keys && myGameCanvas.keys[39]) {
-                myCompoment.speedX = 3;
-            }
-
-            if (myGameCanvas.keys && myGameCanvas.keys[38]) {
-                myCompoment.speedY = -3;
-            }
-
-            if (myGameCanvas.keys && myGameCanvas.keys[40]) {
-                myCompoment.speedY = 3;
-            }
-            if (myGameCanvas.keys && myGameCanvas.keys[13]) {
-                fire.push(new compoment(20, 10, "blue", myCompoment.PosX, myCompoment.PosY));
-                for (i = 0; i < fire.length; i++) {
-                    fire[i].speedF = 10;
-                }
-            }
-            myCompoment.update();
-            myCompoment.NewPos();
+        if (myGameCanvas.keys && myGameCanvas.keys[13]) {
+          fire.push(
+            new compoment(20, 10, "blue", myCompoment.PosX, myCompoment.PosY)
+          );
+          for (i = 0; i < fire.length; i++) {
+            fire[i].speedF = 10;
+          }
         }
+        myCompoment.update();
+        myCompoment.NewPos();
+      }
     </script>
-    <p class="text">you can click enter to fight</p>
-</body>
-<style>
+    <br />
+    <button
+      class="btn btn-primary"
+      style="cursor: pointer;"
+      onclick="
+      check=false;
+      "
+    >
+      ĐIỀU KHIỂN BẰNG CÁC PHÍM MŨI TÊN
+    </button>
+    <button
+      class="btn btn-primary"
+      style="cursor: pointer;"
+      onclick="
+      check=true;
+      myCompoment.PosX=220;
+      myCompoment.PosY=300;
+      myCompoment.update();
+    myCompoment.NewPos();
+      "
+    >
+      TỰ ĐỘNG CHƠI
+    </button>
+    <label
+      class="label label-danger"
+      style="font-size: 20px;"
+      onclick="
+    check=false;
+    "
+    >
+      BẤM ENTER ĐỂ BẮN__CHƯA HOÀN THÀNH =))))
+    </label>
+    <h1>Game không hỗ trợ cho điện thoại =))))).</h1>
+    <h1>Made By Nguyen The Vinh.</h1>
+  </body>
+  <style>
     Canvas {
-        background: #f1f1f1;
+      background: #f1f1f1;
     }
-</style>
-
+  </style>
 </html>
